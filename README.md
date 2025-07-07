@@ -27,6 +27,27 @@ GET /{short_code} → Base62 decode → Redis GET → 301 redirect
 
 This approach scales horizontally and avoids hash collisions while keeping short codes minimal length.
 
+## Performance Optimizations
+
+Swftly is built for maximum performance with several key optimizations:
+
+### Zero-Allocation Routing
+- **Transparent Hashing**: C++20 transparent hash maps enable route lookups without string allocations
+- **String View Lookups**: Routes are matched using `std::string_view` without creating temporary strings
+- **O(1) Route Resolution**: Hash table lookups with optimized Boost hash combining
+
+### Compiled Lookup Tables
+- **Base62 Decode Table**: 256-element lookup table generated at compile time for O(1) character decoding
+- **No Runtime Computation**: Character-to-value mapping computed during compilation, not at runtime
+- **ASCII Optimization**: Direct array indexing using ASCII values for maximum decode speed
+
+### Memory Efficiency
+- **Stateless Operations**: Thread-safe encoding/decoding without shared state
+- **Minimal Allocations**: Smart buffer management and string pre-sizing
+- **Zero-Copy Operations**: Boost.Beast enables zero-copy HTTP processing where possible
+
+These optimizations ensure Swftly can handle thousands of concurrent requests with minimal latency.
+
 ## Usage Examples
 
 ### Create Short URL
