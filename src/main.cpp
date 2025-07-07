@@ -77,6 +77,13 @@ auto main(int argc, const char *argv[]) -> int
         router.add_route(http::RouteKey{http::beast::http::verb::post, "/api/urls"},
                          http::handler::NewShortCodeHandler{executor, encoder, storage});
 
+        // Log available endpoints (where routes are actually defined)
+        BOOST_LOG_SEV(logger, boost::log::trivial::info) << "Available endpoints:";
+        BOOST_LOG_SEV(logger, boost::log::trivial::info) << "   - GET / - Server info";
+        BOOST_LOG_SEV(logger, boost::log::trivial::info) << "   - GET /ping - Health check endpoint";
+        BOOST_LOG_SEV(logger, boost::log::trivial::info) << "   - POST /api/urls - Create short URL";
+        BOOST_LOG_SEV(logger, boost::log::trivial::info) << "   - GET /<short_code> - Redirect to original URL";
+
         // Create server with io_context
         http::Server server{config, logger, router, ioc};
         BOOST_LOG_SEV(logger, boost::log::trivial::info) << "Starting Swftly URL shortener...";

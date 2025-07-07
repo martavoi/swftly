@@ -36,11 +36,6 @@ auto Server::start() -> std::expected<void, ServerError>
 
         BOOST_LOG_SEV(logger_, boost::log::trivial::info)
             << std::format("Swftly URL shortener started on http://{}:{}", config_.address(), config_.port());
-        BOOST_LOG_SEV(logger_, boost::log::trivial::info) << "Available endpoints:";
-        BOOST_LOG_SEV(logger_, boost::log::trivial::info) << "   - GET / - Server info";
-        BOOST_LOG_SEV(logger_, boost::log::trivial::info) << "   - GET /ping - Health check endpoint";
-        BOOST_LOG_SEV(logger_, boost::log::trivial::info) << "   - POST /api/urls - Create short URL";
-        BOOST_LOG_SEV(logger_, boost::log::trivial::info) << "   - GET /<short_code> - Redirect to original URL";
         BOOST_LOG_SEV(logger_, boost::log::trivial::info) << "Press Ctrl+C to stop";
 
         // Setup graceful shutdown
