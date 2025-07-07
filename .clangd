@@ -1,0 +1,11 @@
+Diagnostics:
+  UnusedIncludes: Strict
+
+InlayHints:
+  BlockEnd: true
+  Designators: true
+  Enabled: true
+  ParameterNames: false
+  DeducedTypes: true
+  DefaultArguments: true
+  TypeNameLimit: 24
