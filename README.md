@@ -87,30 +87,41 @@ curl http://localhost:8080/ping
 ## Quick Start
 
 ### Prerequisites
-- **C++23 Compiler**: Clang 20+ or GCC 13+
+- **C++23 Compiler**: 
+  - **Clang** 15+ (recommended for latest C++23 features)
+  - **GCC** 13+ (excellent C++23 support)
+  - **MSVC** 2022+ (good C++23 support)
 - **Redis Server**: Version 6+
-- **Boost Libraries**: 1.85+ (compiled with matching stdlib)
+- **Boost Libraries**: 1.75+ (system packages recommended)
 - **OpenSSL**: For Redis connections
 
 ### Build and Run
 
 ```bash
-# 1. Start Redis
+# 1. Install dependencies (Ubuntu/Debian example)
+sudo apt install build-essential cmake git redis-server
+sudo apt install libboost-all-dev libssl-dev
+
+# 2. Start Redis
 redis-server
 
-# 2. Clone and build
+# 3. Clone and build
 git clone <your-repo>
 cd swftly
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 
-# 3. Run the server
+# 4. Run the server
 ./build/bin/swftly
 ```
 
 The server starts on `http://localhost:8080` by default.
 
-**Note**: This project was built with Clang and libc++ for optimal C++23 support. Future versions will support GCC/libstdc++/MinGW for broader compatibility.
+**Cross-Platform Support**: This project supports multiple compilers and standard libraries:
+- **Clang + libstdc++** (most compatible)
+- **Clang + libc++** (use `-DUSE_LIBCXX=ON`)
+- **GCC + libstdc++** (default for GCC)
+- **MSVC + MSVCRT** (Windows)
 
 For detailed build instructions, dependencies, and development setup, see [CONTRIBUTING.md](CONTRIBUTING.md).
 

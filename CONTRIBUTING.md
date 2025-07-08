@@ -8,8 +8,11 @@ Thank you for your interest in contributing to Swftly! This document provides de
 
 #### Required Tools
 - **CMake** 3.16 or higher
-- **Clang** 20+ with C++23 support (or GCC 13+)
-- **Boost Libraries** 1.85+ (system, log, program_options, json components)
+- **C++23 Compiler**: 
+  - **Clang** 15+ (recommended for C++23 features)
+  - **GCC** 13+ (good C++23 support)
+  - **MSVC** 2022+ (partial C++23 support)
+- **Boost Libraries** 1.75+ (system, log, program_options, json components)
 - **OpenSSL** 3.0+ (for Redis connections)
 - **Redis Server** 6+ (for runtime)
 - **Git** (for cloning)
@@ -18,153 +21,193 @@ Thank you for your interest in contributing to Swftly! This document provides de
 
 #### Linux/WSL (Recommended)
 
-##### 1. Install Build Tools
+##### Option 1: System Packages (Easiest)
+
 ```bash
 # Ubuntu/Debian
 sudo apt update
 sudo apt install build-essential cmake git redis-server
+sudo apt install libboost-all-dev libssl-dev
 
-# Install Clang 20 (latest)
-wget https://apt.llvm.org/llvm.sh
-chmod +x llvm.sh
-sudo ./llvm.sh 20
+# Fedora/RHEL
+sudo dnf install gcc gcc-c++ cmake git redis boost-devel openssl-devel
+
+# Arch Linux
+sudo pacman -S base-devel cmake git redis boost openssl
 ```
 
-##### 2. Build Boost Libraries with libc++
-
-**Important**: We compile Boost with Clang and libc++ for optimal C++23 support.
+##### Option 2: Modern Compilers (For Latest Features)
 
 ```bash
-# Download Boost 1.88.0
+# Ubuntu/Debian - Install latest Clang
+wget https://apt.llvm.org/llvm.sh
+chmod +x llvm.sh
+sudo ./llvm.sh 18  # or latest version
+
+# Ubuntu/Debian - Install latest GCC
+sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+sudo apt update
+sudo apt install gcc-13 g++-13
+
+# Set as default (optional)
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
+```
+
+##### Option 3: Custom Build (Advanced Users Only)
+
+Only needed if system packages are too old or you need specific optimizations:
+
+<details>
+<summary>Custom Boost Build Instructions</summary>
+
+```bash
+# Download Boost (only if system version is too old)
 cd ~/
-wget https://archives.boost.io/release/1.88.0/source/boost_1_88_0.tar.gz
-tar xzf boost_1_88_0.tar.gz
-cd boost_1_88_0
+wget https://archives.boost.io/release/1.85.0/source/boost_1_85_0.tar.gz
+tar xzf boost_1_85_0.tar.gz
+cd boost_1_85_0
 
-# Bootstrap the build system
-./bootstrap.sh --with-toolset=clang
+# Build with your preferred compiler
+./bootstrap.sh --with-toolset=gcc  # or clang
+sudo ./b2 -j8 variant=release,debug threading=multi link=shared,static install
 
-# Build and install with libc++ (for modern C++23 support)
-sudo ./b2 clean
+# For Clang with libc++ (optional)
 sudo ./b2 -j8 toolset=clang variant=release,debug \
     cxxflags="-stdlib=libc++" linkflags="-stdlib=libc++" \
     threading=multi link=shared,static install
-
-# Verify installation
-ls -la /usr/local/lib/libboost_* | head -10
 ```
-
-##### 3. Build OpenSSL with libc++
-
-```bash
-# Download OpenSSL 3.5.1
-cd ~/
-wget https://github.com/openssl/openssl/releases/download/openssl-3.5.1/openssl-3.5.1.tar.gz
-tar xzf openssl-3.5.1.tar.gz
-cd openssl-3.5.1
-
-# Configure and build with Clang/libc++
-export CC=clang-20
-export CXX=clang++-20
-export CXXFLAGS="-stdlib=libc++"
-export LDFLAGS="-stdlib=libc++"
-
-./Configure --prefix=/usr/local/openssl-3.5.1 --openssldir=/usr/local/openssl-3.5.1 \
-    linux-x86_64 shared zlib
-
-make -j8
-sudo make install
-
-# Verify installation
-/usr/local/openssl-3.5.1/bin/openssl version
-```
-
-##### 4. Verify Dependencies
-```bash
-# Check Boost version and libraries
-ls -la /usr/local/lib/libboost_* | grep -E "(log|system|program_options|json)"
-
-# Check library dependencies (should show libc++ for our build)
-ldd /usr/local/lib/libboost_log.so.1.88.0
-
-# Check OpenSSL
-ls -la /usr/local/openssl-3.5.1/lib/
-```
+</details>
 
 #### Windows Setup
 
-##### Option 1: WSL2 (Recommended)
-Use Windows Subsystem for Linux with the Linux setup above.
-
-##### Option 2: Native Windows with MSYS2
+##### Option 1: MSYS2 (Recommended)
 ```bash
-# Install MSYS2
-winget install MSYS2.MSYS2
-
-# Open MSYS2 terminal and install tools
-pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-make
+# Install MSYS2 from https://www.msys2.org/
+# Open MSYS2 terminal and install packages
+pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake
 pacman -S mingw-w64-x86_64-boost mingw-w64-x86_64-openssl
+pacman -S git make
+```
 
-# Note: System packages may not have C++23 support
-# For full C++23 features, build Boost/OpenSSL from source
+##### Option 2: Visual Studio
+```bash
+# Install Visual Studio 2022 with C++ workload
+# Install vcpkg for dependencies
+git clone https://github.com/Microsoft/vcpkg.git
+cd vcpkg
+.\bootstrap-vcpkg.bat
+.\vcpkg integrate install
+.\vcpkg install boost openssl
+```
+
+##### Option 3: WSL2 (Use Linux instructions above)
+
+#### macOS Setup
+
+```bash
+# Install Homebrew if not already installed
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Install dependencies
+brew install cmake boost openssl redis git
+
+# For latest Clang
+brew install llvm
+
+# For latest GCC  
+brew install gcc
 ```
 
 ### Building the Project
 
-#### Multi-Configuration Support
-
-This project supports separate Debug and Release builds in different directories:
+The new build system automatically detects your compiler and standard library, making it much easier to build across different environments.
 
 #### Quick Build Commands
 
-**Debug Build:**
+**Using System Compiler (Auto-detected):**
 ```bash
-# Linux/WSL (Clang + libc++)
-cmake -G "Unix Makefiles" -S . -B build-debug \
-    -DCMAKE_BUILD_TYPE=Debug \
-    -DCMAKE_CXX_COMPILER=clang++-20 \
-    -DCMAKE_C_COMPILER=clang-20
-cmake --build build-debug
+# Configure and build (Release)
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
 
-# Windows (MSYS2)
-cmake -G "MinGW Makefiles" -S . -B build-debug -DCMAKE_BUILD_TYPE=Debug
+# Configure and build (Debug)
+cmake -B build-debug -DCMAKE_BUILD_TYPE=Debug
 cmake --build build-debug
 ```
 
-**Release Build:**
+**Explicitly Choosing Compiler:**
 ```bash
-# Linux/WSL (Clang + libc++)
-cmake -G "Unix Makefiles" -S . -B build-release \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_CXX_COMPILER=clang++-20 \
-    -DCMAKE_C_COMPILER=clang-20
-cmake --build build-release
+# Use GCC
+cmake -B build -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Release
+cmake --build build
 
-# Windows (MSYS2)
-cmake -G "MinGW Makefiles" -S . -B build-release -DCMAKE_BUILD_TYPE=Release
-cmake --build build-release
+# Use Clang with default standard library
+cmake -B build -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+
+# Use Clang with libc++ (optional)
+cmake -B build -DCMAKE_CXX_COMPILER=clang++ -DUSE_LIBCXX=ON -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+
+# Use custom OpenSSL installation
+cmake -B build -DOPENSSL_CUSTOM_PATH=/usr/local/openssl-3.5.1 -DCMAKE_BUILD_TYPE=Release
+cmake --build build
 ```
+
+**Windows-specific:**
+```bash
+# MSYS2/MinGW
+cmake -G "MinGW Makefiles" -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+
+# Visual Studio
+cmake -B build
+cmake --build build --config Release
+```
+
+#### Build Options
+
+- **`USE_LIBCXX=ON`**: Force use of libc++ with Clang (default: OFF, uses default stdlib)
+- **`CMAKE_BUILD_TYPE`**: Debug, Release, RelWithDebInfo, MinSizeRel
+- **`BOOST_ROOT`**: Custom Boost installation path (if not in standard location)
+- **`OPENSSL_CUSTOM_PATH`**: Custom OpenSSL installation path (e.g., `/usr/local/openssl-3.5.1`)
 
 #### Build Configurations
 
-- **Debug**: `-g -Wall -Wextra -Wpedantic -O0 -DDEBUG`
-  - Full debug symbols, all warnings, no optimization
-- **Release**: `-O3 -DNDEBUG -march=native -flto=thin`
-  - Maximum optimization, no debug symbols, Link Time Optimization
-- **RelWithDebInfo**: `-O2 -g -DNDEBUG -gline-tables-only`
-  - Optimized with debug symbols
-- **MinSizeRel**: `-Oz -DNDEBUG -flto=thin`
-  - Size-optimized release
+- **Debug**: Full debug symbols, no optimization, all warnings
+- **Release**: Maximum optimization, no debug symbols, Link Time Optimization (LTO) where available
+- **RelWithDebInfo**: Optimized with debug symbols for profiling
+- **MinSizeRel**: Size-optimized release
 
 #### Clean Build
 ```bash
 # Clean specific configuration
-cmake --build build-debug --target clean
-cmake --build build-release --target clean
+cmake --build build --target clean
 
-# Remove all build directories (cross-platform)
-cmake -E rm -rf build-debug build-release
+# Remove build directory entirely
+rm -rf build build-debug
 ```
+
+### Compiler and Standard Library Support
+
+#### Tested Combinations
+
+| Compiler | Standard Library | Status | Notes |
+|----------|------------------|--------|-------|
+| Clang 15+ | libstdc++ | ✅ Fully Supported | Default, most compatible |
+| Clang 15+ | libc++ | ✅ Fully Supported | Use `-DUSE_LIBCXX=ON` |
+| GCC 13+ | libstdc++ | ✅ Fully Supported | Default for GCC |
+| MSVC 2022 | MSVCRT | ⚠️ Partial | Some C++23 features limited |
+
+#### Feature Support by Compiler
+
+| Feature | Clang 15+ | GCC 13+ | MSVC 2022 |
+|---------|-----------|---------|-----------|
+| `std::expected` | ✅ | ✅ | ✅ |
+| `std::format` | ✅ | ✅ | ✅ |
+| Coroutines | ✅ | ✅ | ✅ |
+| Concepts | ✅ | ✅ | ✅ |
 
 ### Running the Application
 
@@ -175,6 +218,9 @@ redis-server
 
 # Or with custom config
 redis-server /path/to/redis.conf
+
+# Check Redis is running
+redis-cli ping
 ```
 
 #### Run Swftly
@@ -183,7 +229,10 @@ redis-server /path/to/redis.conf
 ./build-debug/bin/swftly --port 8080 --redis-host 127.0.0.1 --redis-port 6379
 
 # Release build  
-./build-release/bin/swftly --port 8080 --redis-host 127.0.0.1 --redis-port 6379
+./build/bin/swftly --port 8080 --redis-host 127.0.0.1 --redis-port 6379
+
+# With custom log level
+./build/bin/swftly --log-level debug --port 8080
 ```
 
 #### Test the API
@@ -196,7 +245,7 @@ curl -X POST http://localhost:8080/api/urls \
   -H "Content-Type: application/json" \
   -d '{"url": "https://www.example.com"}'
 
-# Use short URL
+# Use short URL (follow redirects)
 curl -L http://localhost:8080/a
 ```
 
@@ -204,22 +253,18 @@ curl -L http://localhost:8080/a
 
 ### VS Code Setup
 
-The project includes pre-configured VS Code tasks:
+The project includes pre-configured VS Code tasks that work with the new build system:
 
 - **Build Debug**: `Ctrl+Shift+B` (default task)
 - **Build Release**: `Ctrl+Shift+P` → "Tasks: Run Task" → "cmake-build-release"
-- **Debug (Debug Build)**: `F5` → Select "Debug (Debug Build)"
-- **Debug (Release Build)**: `F5` → Select "Debug (Release Build)"
-- **Clean All**: `Ctrl+Shift+P` → "Tasks: Run Task" → "cmake-clean-all"
+- **Configure**: `Ctrl+Shift+P` → "Tasks: Run Task" → "cmake-configure"
+- **Clean**: `Ctrl+Shift+P` → "Tasks: Run Task" → "cmake-clean"
 
 #### Available Tasks:
-- `cmake-configure-debug` - Configure Debug build
-- `cmake-configure-release` - Configure Release build  
+- `cmake-configure` - Configure build system
 - `cmake-build-debug` - Build Debug configuration
 - `cmake-build-release` - Build Release configuration
-- `cmake-clean-debug` - Clean Debug artifacts
-- `cmake-clean-release` - Clean Release artifacts
-- `cmake-clean-all` - Remove all build directories
+- `cmake-clean` - Clean build artifacts
 
 ### Project Structure
 ```
@@ -234,21 +279,13 @@ swftly/
 │   ├── logging/           # Boost.Log setup and configuration
 │   ├── storage/           # Redis storage service
 │   └── main.cpp           # Application entry point
+├── build/                 # Release build output (generated)
+│   └── bin/swftly        # Optimized release build
 ├── build-debug/           # Debug build output (generated)
-│   ├── bin/              # Debug executables
-│   │   └── swftly        # Debug build of URL shortener
-│   ├── lib/              # Debug libraries
+│   ├── bin/swftly        # Debug build with symbols
 │   └── compile_commands.json  # For clang-tidy and IDEs
-├── build-release/         # Release build output (generated)  
-│   ├── bin/              # Release executables
-│   │   └── swftly        # Optimized release build
-│   └── lib/              # Release libraries
 ├── .vscode/              # VS Code configuration
-│   ├── launch.json       # Debug configurations (Debug & Release)
-│   ├── tasks.json        # Build tasks (multi-config)
-│   ├── settings.json     # Editor settings
-│   └── c_cpp_properties.json  # IntelliSense configuration
-├── CMakeLists.txt        # CMake configuration with Boost libraries
+├── CMakeLists.txt        # Portable CMake configuration
 ├── README.md             # Project overview and usage
 └── CONTRIBUTING.md       # This file
 ```
@@ -284,10 +321,11 @@ No need to manually update `CMakeLists.txt` for new source files.
 ### Code Style Guidelines
 
 #### C++ Standards
-- Use **C++23** features where beneficial
+- Use **C++23** features where beneficial and widely supported
 - Prefer **modern C++** idioms (smart pointers, RAII, etc.)
 - Use **explicit** `boost::` prefixes (no `using namespace boost`)
 - Follow **const-correctness** principles
+- Use standard library features over compiler extensions
 
 #### Naming Conventions
 - **Files**: `snake_case.cpp`, `snake_case.hpp`
@@ -329,30 +367,16 @@ curl -L -v http://localhost:8080/a
 
 #### Load Testing
 ```bash
-# Install Apache Bench
+# Install Apache Bench (Ubuntu/Debian)
 sudo apt install apache2-utils
 
 # Test concurrent requests
 ab -n 1000 -c 10 http://localhost:8080/ping
 
-# Test POST requests
+# Test POST requests (create test data file first)
+echo '{"url": "https://example.com"}' > post_data.json
 ab -n 100 -c 5 -p post_data.json -T application/json http://localhost:8080/api/urls
 ```
-
-## Future Compatibility Plans
-
-Currently, the project is optimized for **Clang + libc++** to leverage cutting-edge C++23 features. Future versions will include:
-
-### Planned Compiler Support
-- **GCC 13+** with **libstdc++**
-- **MSVC 2022** with **MSVCRT**
-- **MinGW-w64** for Windows builds
-
-### Simplified Build System
-- Auto-detection of compiler and standard library
-- Fallback to C++20 features when C++23 unavailable
-- Package manager integration (vcpkg, Conan)
-- Precompiled binaries for major platforms
 
 ## Troubleshooting
 
@@ -360,78 +384,74 @@ Currently, the project is optimized for **Clang + libc++** to leverage cutting-e
 
 #### CMake can't find Boost libraries
 ```bash
-# Verify Boost installation
-ls -la /usr/local/lib/libboost_* | grep -E "(log|system|program_options|json)"
+# Try installing development packages
+# Ubuntu/Debian
+sudo apt install libboost-all-dev
 
-# If libraries are missing, rebuild Boost:
-cd ~/boost_1_88_0
-sudo ./b2 clean
-sudo ./b2 -j8 toolset=clang variant=release,debug \
-    cxxflags="-stdlib=libc++" linkflags="-stdlib=libc++" \
-    threading=multi link=shared,static install
-```
+# Fedora/RHEL
+sudo dnf install boost-devel
 
-#### Linker errors with "undefined reference to boost::"
-This typically means Boost libraries were built with a different standard library (libstdc++ vs libc++).
-```bash
-# Check what standard library Boost uses:
-ldd /usr/local/lib/libboost_log.so.1.88.0
-
-# Should show libc++.so, not libstdc++.so
-# If showing libstdc++, rebuild Boost with the correct flags above
+# If using custom installation, set BOOST_ROOT
+cmake -DBOOST_ROOT=/path/to/boost -B build
 ```
 
 #### CMake can't find OpenSSL
 ```bash
-# Verify OpenSSL installation
-ls -la /usr/local/openssl-3.5.1/lib/
+# Install development packages
+# Ubuntu/Debian
+sudo apt install libssl-dev
 
-# Set OpenSSL path in CMake:
-cmake -DOPENSSL_ROOT_DIR=/usr/local/openssl-3.5.1 -S . -B build
+# Fedora/RHEL
+sudo dnf install openssl-devel
+
+# For custom installation
+cmake -DOPENSSL_CUSTOM_PATH=/usr/local/openssl-3.5.1 -B build
+```
+
+#### Compiler not found
+```bash
+# Explicitly specify compiler
+cmake -DCMAKE_CXX_COMPILER=g++-13 -B build
+cmake -DCMAKE_CXX_COMPILER=clang++-15 -B build
 ```
 
 #### Build fails with C++23 feature errors
-- Ensure you're using **Clang 20+** or **GCC 13+**
-- Verify **libc++** is being used: check compiler output for `-stdlib=libc++`
-- Some C++23 features may require newer libc++ versions
+- Check if your compiler supports the required features
+- The build system will warn about missing features
+- Consider using a newer compiler version
+
+#### Linking errors with different standard libraries
+- Make sure all components (Boost, OpenSSL, your app) use the same standard library
+- For Clang: use either all libstdc++ or all libc++
+- Check build output for standard library mismatches
 
 #### VS Code IntelliSense errors
-- Ensure `.vscode/c_cpp_properties.json` has correct compiler path
+- Ensure `compile_commands.json` is generated in build directory
 - Reload VS Code window: `Ctrl+Shift+P` → "Developer: Reload Window"
-- Check that `compile_commands.json` is generated in build directory
+- Check that VS Code is using the correct compiler in settings
 
 #### Server won't start
 ```bash
 # Check if port 8080 is in use
 sudo netstat -tlnp | grep :8080
 
-# Check Redis is running
+# Test Redis connectivity
 redis-cli ping
 
-# Test server with verbose logging
-./build-debug/bin/swftly --log-level trace
+# Run with verbose logging
+./build/bin/swftly --log-level trace
 ```
 
 #### Redis connection issues
 ```bash
-# Start Redis with default config
+# Start Redis server
 redis-server
 
-# Test Redis connectivity
+# Check Redis status
 redis-cli ping
 
-# Check Redis logs
-tail -f /var/log/redis/redis-server.log
-```
-
-#### Permission errors during builds
-```bash
-# Ensure you have write permissions to /usr/local
-sudo chown -R $(whoami):$(whoami) /usr/local/include /usr/local/lib
-
-# Or use a custom prefix:
-./b2 --prefix=/home/$(whoami)/boost-install install
-# Then set: export BOOST_ROOT=/home/$(whoami)/boost-install
+# Check Redis configuration
+redis-cli config get '*'
 ```
 
 ## Contributing Guidelines
@@ -444,7 +464,7 @@ sudo chown -R $(whoami):$(whoami) /usr/local/include /usr/local/lib
 
 ### Development Process
 1. **Write** your code following the style guidelines
-2. **Test** your changes thoroughly
+2. **Test** your changes thoroughly on your platform
 3. **Update** documentation if needed
 4. **Commit** your changes: `git commit -m 'Add some amazing feature'`
 5. **Push** to your branch: `git push origin feature/amazing-feature`
@@ -453,7 +473,7 @@ sudo chown -R $(whoami):$(whoami) /usr/local/include /usr/local/lib
 ### Pull Request Guidelines
 - **Clear description** of changes and motivation
 - **Reference** any related issues
-- **Include tests** for new functionality
+- **Test** on multiple compilers if possible
 - **Update documentation** for user-facing changes
 - **Ensure** all builds pass (Debug and Release)
 - **Follow** existing code style and conventions

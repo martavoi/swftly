@@ -13,7 +13,7 @@
 #include <boost/asio/use_future.hpp>
 #include <boost/log/trivial.hpp>
 #include <format>
-#include <print>
+#include <iostream>
 
 auto main(int argc, const char *argv[]) -> int
 {
@@ -26,23 +26,23 @@ auto main(int argc, const char *argv[]) -> int
         case conf::ConfigError::HelpRequested:
             return 0; // Help requested is not an error
         case conf::ConfigError::InvalidPort:
-            std::println(stderr, "Error: Invalid port. Port must be between 1-65535");
+            std::cerr << "Error: Invalid port. Port must be between 1-65535\n";
             return 1;
         case conf::ConfigError::InvalidThreads:
-            std::println(stderr, "Error: Invalid thread count. Must be positive");
+            std::cerr << "Error: Invalid thread count. Must be positive\n";
             return 1;
         case conf::ConfigError::EmptyAddress:
-            std::println(stderr, "Error: Address cannot be empty");
+            std::cerr << "Error: Address cannot be empty\n";
             return 1;
         case conf::ConfigError::ParseError:
-            std::println(stderr, "Error: Failed to parse command line arguments");
+            std::cerr << "Error: Failed to parse command line arguments\n";
             return 1;
         case conf::ConfigError::InvalidLogLevel:
-            std::println(stderr, "Error: Invalid log level. Must be one of: trace, debug, info, warning, error, "
-                                 "fatal");
+            std::cerr << "Error: Invalid log level. Must be one of: trace, debug, info, warning, error, "
+                         "fatal\n";
             return 1;
         case conf::ConfigError::UnexpectedError:
-            std::println(stderr, "Error: Unexpected configuration error");
+            std::cerr << "Error: Unexpected configuration error\n";
             return 1;
         }
     }
@@ -114,10 +114,10 @@ auto main(int argc, const char *argv[]) -> int
     }
     catch (const std::exception &e)
     {
-        std::println(stderr, "Fatal error during startup: {}", e.what());
+        std::cerr << std::format("Fatal error during startup: {}\n", e.what());
         return 1;
     }
 
-    std::println(stdout, "[OK] Server stopped gracefully");
+    std::cout << "[OK] Server stopped gracefully\n";
     return 0;
 }

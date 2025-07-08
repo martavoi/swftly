@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.16)
 # Project name and version
 project(swftly VERSION 1.0.0 LANGUAGES CXX)
 
-# Set C++ standard
+# Set C++ standard with fallback support
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -21,45 +21,130 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
-# Clang-specific configuration
+# Compiler detection and configuration
+message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+
+# Portable compiler flags
+set(CMAKE_CXX_FLAGS_DEBUG "")
+set(CMAKE_CXX_FLAGS_RELEASE "")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "")
+set(CMAKE_CXX_FLAGS_MINSIZEREL "")
+
+# Base flags for all compilers
+set(BASE_CXX_FLAGS "-Wall -Wextra -Wpedantic")
+set(BASE_DEBUG_FLAGS "-g -O0 -DDEBUG")
+set(BASE_RELEASE_FLAGS "-O3 -DNDEBUG")
+
+# Compiler-specific optimizations
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    # Use libc++ with Clang for better C++23 support and modern features
-    add_compile_options(-stdlib=libc++)
-    add_link_options(-stdlib=libc++)
+    message(STATUS "Configuring for Clang")
     
-    # Clang-optimized compiler flags
-    set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wextra -Wpedantic -O0 -DDEBUG")
-    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -march=native -flto=thin")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG -gline-tables-only")
-    set(CMAKE_CXX_FLAGS_MINSIZEREL "-Oz -DNDEBUG -flto=thin")
+    # Clang-specific flags
+    set(CLANG_FLAGS "${BASE_CXX_FLAGS} -Wthread-safety")
+    set(CLANG_DEBUG_FLAGS "${BASE_DEBUG_FLAGS}")
+    set(CLANG_RELEASE_FLAGS "${BASE_RELEASE_FLAGS} -flto=thin")
+    
+    # Optional: Use libc++ if explicitly requested
+    option(USE_LIBCXX "Use libc++ instead of libstdc++" OFF)
+    if(USE_LIBCXX)
+        message(STATUS "Using libc++ standard library")
+        set(CLANG_FLAGS "${CLANG_FLAGS} -stdlib=libc++")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
+    else()
+        message(STATUS "Using default standard library")
+    endif()
+    
+    set(CMAKE_CXX_FLAGS_DEBUG "${CLANG_DEBUG_FLAGS} ${CLANG_FLAGS}")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CLANG_RELEASE_FLAGS} ${CLANG_FLAGS}")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG -gline-tables-only ${CLANG_FLAGS}")
+    set(CMAKE_CXX_FLAGS_MINSIZEREL "-Oz -DNDEBUG -flto=thin ${CLANG_FLAGS}")
+
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    message(STATUS "Configuring for GCC")
+    
+    # GCC-specific flags
+    set(GCC_FLAGS "${BASE_CXX_FLAGS}")
+    set(GCC_DEBUG_FLAGS "${BASE_DEBUG_FLAGS}")
+    set(GCC_RELEASE_FLAGS "${BASE_RELEASE_FLAGS}")
+    
+    # GCC version-specific features
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "13.0")
+        message(STATUS "GCC 13+ detected, enabling advanced optimizations")
+        set(GCC_RELEASE_FLAGS "${GCC_RELEASE_FLAGS} -flto")
+    endif()
+    
+    set(CMAKE_CXX_FLAGS_DEBUG "${GCC_DEBUG_FLAGS} ${GCC_FLAGS}")
+    set(CMAKE_CXX_FLAGS_RELEASE "${GCC_RELEASE_FLAGS} ${GCC_FLAGS}")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG ${GCC_FLAGS}")
+    set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -DNDEBUG ${GCC_FLAGS}")
+
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    message(STATUS "Configuring for MSVC")
+    
+    # MSVC-specific flags
+    set(CMAKE_CXX_FLAGS_DEBUG "/Zi /Od /RTC1 /DDEBUG")
+    set(CMAKE_CXX_FLAGS_RELEASE "/O2 /DNDEBUG")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/O2 /Zi /DNDEBUG")
+    set(CMAKE_CXX_FLAGS_MINSIZEREL "/O1 /DNDEBUG")
+
 else()
-    # Fallback flags for other compilers (GCC, etc.)
-    set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wextra -Wpedantic -O0 -DDEBUG")
-    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -march=native")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG")
-    set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -DNDEBUG")
+    message(STATUS "Configuring for unknown compiler with basic flags")
+    set(CMAKE_CXX_FLAGS_DEBUG "${BASE_DEBUG_FLAGS} ${BASE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS_RELEASE "${BASE_RELEASE_FLAGS} ${BASE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG ${BASE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -DNDEBUG ${BASE_CXX_FLAGS}")
 endif()
 
 # Platform-specific settings
 if(WIN32)
     message(STATUS "Configuring for Windows")
+    # Windows-specific settings
 elseif(UNIX AND NOT APPLE)
     message(STATUS "Configuring for Linux")
     # Linux needs threading support for modern C++ and Boost
     find_package(Threads REQUIRED)
+elseif(APPLE)
+    message(STATUS "Configuring for macOS")
+    # macOS-specific settings
 endif()
 
 # Automatically find all .cpp files in src directory
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
-# Find Boost libraries using modern target-based approach
-# Only include components actually used in the code
-# Note: Boost.Redis is header-only, so we don't need to find it as a component
-find_package(Boost REQUIRED COMPONENTS system log program_options json)
+# Find Boost libraries with better error handling
+# Support both system packages and custom installations
+find_package(Boost 1.75 REQUIRED COMPONENTS system log program_options json)
 
-# Find our custom-built OpenSSL, which Boost.Redis requires
-set(OPENSSL_ROOT_DIR "/usr/local/openssl-3.5.1")
+if(Boost_FOUND)
+    message(STATUS "Found Boost ${Boost_VERSION}")
+    message(STATUS "Boost include dirs: ${Boost_INCLUDE_DIRS}")
+    message(STATUS "Boost library dir: ${Boost_LIBRARY_DIRS}")
+    message(STATUS "Boost libraries:")
+    message(STATUS "  - Boost::system: ${Boost_SYSTEM_LIBRARY}")
+    message(STATUS "  - Boost::log: ${Boost_LOG_LIBRARY}")
+    message(STATUS "  - Boost::program_options: ${Boost_PROGRAM_OPTIONS_LIBRARY}")
+    message(STATUS "  - Boost::json: ${Boost_JSON_LIBRARY}")
+else()
+    message(FATAL_ERROR "Boost not found. Please install Boost development packages or set BOOST_ROOT.")
+endif()
+
 find_package(OpenSSL REQUIRED)
+
+if(OpenSSL_FOUND)
+    message(STATUS "Found OpenSSL ${OPENSSL_VERSION}")
+    message(STATUS "OpenSSL include dir: ${OPENSSL_INCLUDE_DIR}")
+    message(STATUS "OpenSSL libraries:")
+    message(STATUS "  - SSL library: ${OPENSSL_SSL_LIBRARY}")
+    message(STATUS "  - Crypto library: ${OPENSSL_CRYPTO_LIBRARY}")
+    if(OPENSSL_ROOT_DIR)
+        message(STATUS "Using custom OpenSSL installation from: ${OPENSSL_ROOT_DIR}")
+    else()
+        message(STATUS "Using system OpenSSL installation")
+    endif()
+else()
+    message(FATAL_ERROR "OpenSSL not found. Please install OpenSSL development packages or set OPENSSL_ROOT_DIR.")
+endif()
 
 # Create the main executable (modular server application)
 add_executable(${PROJECT_NAME} ${SOURCES})
@@ -67,7 +152,7 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 # Include directories (for header files)
 target_include_directories(${PROJECT_NAME} PRIVATE src)
 
-# Link libraries
+# Link libraries using modern target-based approach
 target_link_libraries(${PROJECT_NAME} 
     PRIVATE 
     Boost::system
@@ -87,13 +172,60 @@ elseif(UNIX AND NOT APPLE)
     message(STATUS "Linked threading libraries for Linux")
 endif()
 
-# Optional: Print configuration info
+# Compiler feature requirements
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)
+
+# Print configuration summary
+message(STATUS "=== Build Configuration Summary ===")
+message(STATUS "Project: ${PROJECT_NAME} v${PROJECT_VERSION}")
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+message(STATUS "Compiler path: ${CMAKE_CXX_COMPILER}")
 message(STATUS "Platform: ${CMAKE_SYSTEM_NAME}")
 message(STATUS "C++ Standard: C++${CMAKE_CXX_STANDARD}")
+
+# Standard library information
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    message(STATUS "Using libc++ standard library")
+    if(USE_LIBCXX)
+        message(STATUS "Standard library: libc++")
+    else()
+        message(STATUS "Standard library: libstdc++ (default)")
+    endif()
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    message(STATUS "Standard library: libstdc++")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    message(STATUS "Standard library: MSVCRT")
 endif()
+
+# Compiler flags summary
+message(STATUS "Compiler flags for ${CMAKE_BUILD_TYPE}:")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    message(STATUS "  ${CMAKE_CXX_FLAGS_DEBUG}")
+elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+    message(STATUS "  ${CMAKE_CXX_FLAGS_RELEASE}")
+elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+    message(STATUS "  ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+elseif(CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
+    message(STATUS "  ${CMAKE_CXX_FLAGS_MINSIZEREL}")
+endif()
+
 message(STATUS "Found source files: ${SOURCES}")
 message(STATUS "Executable will be placed in: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+
+# Library dependencies summary
+message(STATUS "=== Library Dependencies Summary ===")
+message(STATUS "Boost ${Boost_VERSION} (${Boost_LIBRARY_DIRS})")
+message(STATUS "  └─ Components: system, log, program_options, json")
+if(OPENSSL_ROOT_DIR)
+    message(STATUS "OpenSSL ${OPENSSL_VERSION} (Custom: ${OPENSSL_ROOT_DIR})")
+else()
+    message(STATUS "OpenSSL ${OPENSSL_VERSION} (System)")
+endif()
+message(STATUS "  └─ Components: SSL, Crypto")
+
+# Platform-specific libraries
+if(WIN32)
+    message(STATUS "Windows Socket Libraries: ws2_32, wsock32")
+elseif(UNIX AND NOT APPLE)
+    message(STATUS "Threading Library: Threads::Threads")
+endif()
