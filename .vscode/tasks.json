@@ -179,6 +179,132 @@
             "problemMatcher": [],
             "dependsOn": "cmake-configure-debug",
             "detail": "Run both formatting and static analysis"
+        },
+        {
+            "type": "shell",
+            "label": "msys2-cmake-configure-debug",
+            "command": "cmake",
+            "args": [
+                "-G",
+                "MinGW Makefiles",
+                "-S",
+                ".",
+                "-B",
+                "build",
+                "-DCMAKE_BUILD_TYPE=Debug",
+                "-DUSE_LIBCXX=ON"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "Configure CMake project for Debug build in MSYS2 MinGW CLANG64"
+        },
+        {
+            "type": "shell",
+            "label": "msys2-cmake-configure-release",
+            "command": "cmake",
+            "args": [
+                "-G",
+                "MinGW Makefiles",
+                "-S",
+                ".",
+                "-B",
+                "build",
+                "-DCMAKE_BUILD_TYPE=Release",
+                "-DUSE_LIBCXX=ON"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "Configure CMake project for Release build in MSYS2 MinGW CLANG64"
+        },
+        {
+            "type": "shell",
+            "label": "msys2-cmake-build-debug",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "build",
+                "--parallel"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "dependsOn": "msys2-cmake-configure-debug",
+            "detail": "Build Debug configuration in MSYS2 MinGW CLANG64"
+        },
+        {
+            "type": "shell",
+            "label": "msys2-cmake-build-release",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "build",
+                "--parallel"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "dependsOn": "msys2-cmake-configure-release",
+            "detail": "Build Release configuration in MSYS2 MinGW CLANG64"
+        },
+        {
+            "type": "shell",
+            "label": "msys2-cmake-clean",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "build",
+                "--target",
+                "clean"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "Clean build artifacts in MSYS2 MinGW CLANG64"
+        },
+        {
+            "type": "shell",
+            "label": "msys2-run-debug",
+            "command": "./build/bin/swftly.exe",
+            "args": [
+                "--log-level",
+                "debug"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "test",
+            "problemMatcher": [],
+            "dependsOn": "msys2-cmake-build-debug",
+            "detail": "Run debug build in MSYS2 MinGW CLANG64"
+        },
+        {
+            "type": "shell",
+            "label": "msys2-run-release",
+            "command": "./build/bin/swftly.exe",
+            "args": [],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "test",
+            "problemMatcher": [],
+            "dependsOn": "msys2-cmake-build-release",
+            "detail": "Run release build in MSYS2 MinGW CLANG64"
         }
     ]
 }
