@@ -40,11 +40,6 @@ compile_commands.json
 
 # IDE/Editor files
 .vs/
-.vscode/
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/c_cpp_properties.json
-!.vscode/settings.json
 *.user
 *.suo
 *.vcxproj.user

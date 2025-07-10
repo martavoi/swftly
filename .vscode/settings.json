@@ -1,0 +1,28 @@
+{
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "anysphere.cpptools",
+    "editor.codeActionsOnSave": {
+        "source.fixAll.clang-format": "explicit",
+    },
+    "C_Cpp.default.cppStandard": "c++23",
+    "C_Cpp.default.cStandard": "c17",
+    "C_Cpp.default.compilerPath": "/usr/bin/clang++",
+    "C_Cpp.default.intelliSenseMode": "linux-clang-x64",
+    "C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json",
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}/src"
+    ],
+    "C_Cpp.default.defines": [
+        "_DEBUG",
+        "_LIBCPP_VERSION"
+    ],
+    "[cpp]": {
+        "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+    },
+    "[yaml]": {
+        "editor.defaultFormatter": "redhat.vscode-yaml"
+    },
+    "[jsonc]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
+    }
+}

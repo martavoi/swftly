@@ -1,0 +1,184 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "cmake-configure-debug",
+            "command": "cmake",
+            "args": [
+                "-G",
+                "Unix Makefiles",
+                "-S",
+                ".",
+                "-B",
+                "build",
+                "-DCMAKE_BUILD_TYPE=Debug",
+                "-DOPENSSL_ROOT_DIR=/usr/local/openssl-3.5.1",
+                "-DUSE_LIBCXX=ON"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "Configure CMake project for Debug build with custom OpenSSL"
+        },
+        {
+            "type": "shell",
+            "label": "cmake-configure-release",
+            "command": "cmake",
+            "args": [
+                "-G",
+                "Unix Makefiles",
+                "-S",
+                ".",
+                "-B",
+                "build",
+                "-DCMAKE_BUILD_TYPE=Release",
+                "-DOPENSSL_ROOT_DIR=/usr/local/openssl-3.5.1",
+                "-DUSE_LIBCXX=ON"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "Configure CMake project for Release build with custom OpenSSL"
+        },
+        {
+            "type": "shell",
+            "label": "cmake-build-debug",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "build"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "dependsOn": "cmake-configure-debug",
+            "detail": "Build Debug configuration"
+        },
+        {
+            "type": "shell",
+            "label": "cmake-build-release",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "build"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "dependsOn": "cmake-configure-release",
+            "detail": "Build Release configuration"
+        },
+        {
+            "type": "shell",
+            "label": "cmake-clean-debug",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "build",
+                "--target",
+                "clean"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "Clean Debug build artifacts"
+        },
+        {
+            "type": "shell",
+            "label": "cmake-clean-release",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "build",
+                "--target",
+                "clean"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "Clean Release build artifacts"
+        },
+        {
+            "type": "shell",
+            "label": "cmake-clean-all",
+            "command": "rm",
+            "args": [
+                "-rf",
+                "build"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "Clean all build directories"
+        },
+        {
+            "type": "shell",
+            "label": "clang-tidy-check",
+            "command": "clang-tidy-20",
+            "args": [
+                "src/**/*.cpp",
+                "-p",
+                "build"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "dependsOn": "cmake-configure-debug",
+            "detail": "Run clang-tidy static analysis"
+        },
+        {
+            "type": "shell",
+            "label": "clang-format-format",
+            "command": "clang-format-20",
+            "args": [
+                "-i",
+                "src/**/*.cpp",
+                "src/**/*.hpp"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "Format all source files with clang-format"
+        },
+        {
+            "type": "shell",
+            "label": "code-quality-check",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "build",
+                "--target",
+                "code-quality"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "dependsOn": "cmake-configure-debug",
+            "detail": "Run both formatting and static analysis"
+        }
+    ]
+}
