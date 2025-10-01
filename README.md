@@ -136,11 +136,47 @@ For detailed build instructions, dependencies, and development setup, see [CONTR
 
 ## Configuration
 
-Environment variables:
-- `SWFTLY_PORT`: Server port (default: 8080)
-- `SWFTLY_HOST`: Server host (default: 127.0.0.1)
-- `REDIS_HOST`: Redis host (default: 127.0.0.1)
-- `REDIS_PORT`: Redis port (default: 6379)
+Swftly supports configuration through both environment variables and command-line arguments (CLI args take precedence).
+
+### Environment Variables
+
+All environment variables use the `SWFTLY_` prefix:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `SWFTLY_ADDRESS` | Server bind address | `127.0.0.1` |
+| `SWFTLY_PORT` | Server port | `8080` |
+| `SWFTLY_THREADS` | Number of worker threads | `1` |
+| `SWFTLY_LOG_LEVEL` | Log level (trace, debug, info, warning, error, fatal) | `info` (release) / `trace` (debug) |
+| `SWFTLY_REDIS_HOST` | Redis server host | `127.0.0.1` |
+| `SWFTLY_REDIS_PORT` | Redis server port | `6379` |
+
+**Example:**
+```bash
+export SWFTLY_PORT=3000
+export SWFTLY_LOG_LEVEL=debug
+export SWFTLY_REDIS_HOST=redis.example.com
+./build/bin/swftly
+```
+
+### Command-Line Arguments
+
+| Short | Long | Description |
+|-------|------|-------------|
+| `-a` | `--address` | Server bind address |
+| `-p` | `--port` | Server port |
+| `-t` | `--threads` | Number of worker threads |
+| `-l` | `--log-level` | Log level |
+| | `--redis-host` | Redis server host |
+| | `--redis-port` | Redis server port |
+| `-h` | `--help` | Show help message |
+
+**Example:**
+```bash
+./build/bin/swftly --port 3000 --log-level debug --redis-host redis.example.com
+```
+
+**Note:** Command-line arguments override environment variables when both are specified
 
 ## Contributing
 

@@ -1,4 +1,5 @@
 #include "conf.hpp"
+#include <boost/program_options/parsers.hpp>
 #include <expected>
 #include <string_view>
 #include <unordered_set>
@@ -30,6 +31,7 @@ auto Config::load(const int &argc, const char *argv[]) -> std::expected<void, Co
 
         // Parse command line arguments
         boost::program_options::variables_map vmap;
+        boost::program_options::store(boost::program_options::parse_environment(desc, "SWFTLY_"), vmap);
         boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vmap);
         boost::program_options::notify(vmap);
 
