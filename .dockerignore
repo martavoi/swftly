@@ -1,0 +1,63 @@
+# Build artifacts
+build/
+bin/
+lib/
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.clangd/
+.cache/
+
+# Version control
+.git/
+.gitignore
+.gitattributes
+
+# Documentation and non-essential files
+*.md
+README*
+LICENSE*
+CONTRIBUTING*
+docs/
+examples/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+Jenkinsfile
+
+# Testing
+test/
+tests/
+*_test.cpp
+*_test.hpp
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Misc
+*.log
+tmp/
+temp/
+.env
+.env.*
+

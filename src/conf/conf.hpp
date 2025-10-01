@@ -63,17 +63,40 @@ class Config
     [[nodiscard]] auto load(const int &argc, const char *argv[]) -> std::expected<void, ConfigError>;
 
     /// @brief Gets the server's network listening address.
-    [[nodiscard]] auto address() const noexcept -> std::string_view;
+    [[nodiscard]] auto address() const noexcept
+    {
+        return std::string_view{address_};
+    }
+
     /// @brief Gets the server's network listening port.
-    [[nodiscard]] auto port() const noexcept -> int;
+    [[nodiscard]] auto port() const noexcept
+    {
+        return port_;
+    }
+
     /// @brief Gets the number of worker threads for the server.
-    [[nodiscard]] auto threads() const noexcept -> int;
+    [[nodiscard]] auto threads() const noexcept
+    {
+        return threads_;
+    }
+
     /// @brief Gets the configured log severity level.
-    [[nodiscard]] auto log_level() const noexcept -> std::string_view;
+    [[nodiscard]] auto log_level() const noexcept
+    {
+        return std::string_view{log_level_};
+    }
+
     /// @brief Gets the Redis server host address.
-    [[nodiscard]] auto redis_host() const noexcept -> std::string_view;
+    [[nodiscard]] auto redis_host() const noexcept
+    {
+        return std::string_view{redis_host_};
+    }
+
     /// @brief Gets the Redis server port.
-    [[nodiscard]] auto redis_port() const noexcept -> int;
+    [[nodiscard]] auto redis_port() const noexcept
+    {
+        return redis_port_;
+    }
 
   private:
     [[nodiscard]] auto is_valid() const -> std::expected<void, ConfigError>;

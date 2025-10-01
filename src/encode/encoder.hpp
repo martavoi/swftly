@@ -60,14 +60,20 @@ class Encoder
      *
      * @return The Base62 character set
      */
-    [[nodiscard]] auto get_charset() const -> std::string_view;
+    [[nodiscard]] auto get_charset() const
+    {
+        return kCharset;
+    }
 
     /**
      * @brief Get the base value (62).
      *
      * @return The base value
      */
-    [[nodiscard]] auto get_base() const -> std::size_t;
+    [[nodiscard]] auto get_base() const
+    {
+        return kBase;
+    }
 
     /**
      * @brief Calculate maximum capacity for given string length.

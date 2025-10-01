@@ -46,36 +46,6 @@ auto Config::load(const int &argc, const char *argv[]) -> std::expected<void, Co
     }
 }
 
-auto Config::address() const noexcept -> std::string_view
-{
-    return address_;
-}
-
-auto Config::port() const noexcept -> int
-{
-    return port_;
-}
-
-auto Config::threads() const noexcept -> int
-{
-    return threads_;
-}
-
-auto Config::log_level() const noexcept -> std::string_view
-{
-    return log_level_;
-}
-
-auto Config::redis_host() const noexcept -> std::string_view
-{
-    return redis_host_;
-}
-
-auto Config::redis_port() const noexcept -> int
-{
-    return redis_port_;
-}
-
 auto Config::is_valid() const -> std::expected<void, ConfigError>
 {
     if (port_ < kMinPort || port_ > kMaxPort)

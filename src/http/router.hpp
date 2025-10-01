@@ -78,46 +78,46 @@ class Router
     auto dispatch(const request_t *req, response_t *res) const -> boost::asio::awaitable<void>;
 
   private:
-    // A private hasher that knows how to hash both our real key and a temporary
-    // key made of non-owning views.
+    // A transparent hasher that can hash both RouteKey and temporary lookup pairs
+    // without allocating strings.
     struct RouteKeyHash
     {
-        // This tag enables C++20's high-performance lookup feature.
         using is_transparent = void;
 
+        // Hash for stored RouteKey
         auto operator()(const RouteKey &k) const noexcept -> std::size_t
         {
-            std::size_t seed = 0;
-            boost::hash_combine(seed, k.method_);
-            boost::hash_combine(seed, k.target_);
-            return seed;
+            return boost::hash_value(std::tie(k.method_, k.target_));
         }
 
-        // This overload allows hashing a key without creating a std::string.
+        // Hash for temporary lookup pair (avoids string allocation)
         auto operator()(const std::pair<http::verb, std::string_view> &k) const noexcept -> std::size_t
         {
-            std::size_t seed = 0;
-            boost::hash_combine(seed, k.first);
-            boost::hash_combine(seed, k.second);
-            return seed;
+            return boost::hash_value(k);
         }
     };
 
-    // A private equality checker that can compare our real key against a temporary one.
+    // A transparent equality comparator that can compare both RouteKey and lookup pairs
     struct RouteKeyEqual
     {
         using is_transparent = void;
 
-        // Compares a stored key with a temporary lookup key.
-        auto operator()(const RouteKey &lhs, const std::pair<http::verb, std::string_view> &rhs) const noexcept -> bool
-        {
-            return lhs.method_ == rhs.first && lhs.target_ == rhs.second;
-        }
-
-        // Compares two stored keys with each other.
+        // Compare two RouteKeys
         auto operator()(const RouteKey &lhs, const RouteKey &rhs) const noexcept -> bool
         {
             return lhs.method_ == rhs.method_ && lhs.target_ == rhs.target_;
+        }
+
+        // Compare lookup pair with RouteKey
+        auto operator()(const std::pair<http::verb, std::string_view> &lhs, const RouteKey &rhs) const noexcept -> bool
+        {
+            return lhs.first == rhs.method_ && lhs.second == rhs.target_;
+        }
+
+        // Compare RouteKey with lookup pair (for symmetry)
+        auto operator()(const RouteKey &lhs, const std::pair<http::verb, std::string_view> &rhs) const noexcept -> bool
+        {
+            return lhs.method_ == rhs.first && lhs.target_ == rhs.second;
         }
     };
 

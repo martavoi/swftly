@@ -1,0 +1,61 @@
+services:
+  # Redis service for URL storage
+  redis:
+    image: redis:7-alpine
+    container_name: swftly-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - swftly-network
+
+  # Swftly URL shortener service
+  swftly:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: swftly-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    command:
+      [
+        "--address",
+        "0.0.0.0",
+        "--port",
+        "8080",
+        "--redis-host",
+        "redis",
+        "--redis-port",
+        "6379",
+      ]
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - swftly-network
+    # Optional: Add resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 512M
+        reservations:
+          cpus: "0.5"
+          memory: 128M
+
+volumes:
+  redis-data:
+    driver: local
+
+networks:
+  swftly-network:
+    driver: bridge

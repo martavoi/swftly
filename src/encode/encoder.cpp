@@ -80,16 +80,6 @@ auto Encoder::decode(std::string_view short_code) const -> std::expected<std::ui
     return result;
 }
 
-auto Encoder::get_charset() const -> std::string_view
-{
-    return kCharset;
-}
-
-auto Encoder::get_base() const -> std::size_t
-{
-    return kBase;
-}
-
 auto Encoder::calculate_capacity(std::size_t length) const -> std::uint64_t
 {
     if (length == 0)

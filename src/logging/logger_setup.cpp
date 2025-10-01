@@ -5,6 +5,7 @@
 #include <boost/log/trivial.hpp>
 #include <boost/log/utility/setup/common_attributes.hpp>
 #include <boost/log/utility/setup/console.hpp>
+#include <cstdio>
 #include <iostream>
 #include <sstream>
 
@@ -13,7 +14,7 @@ namespace logging
 
 void setup(const conf::Config &config)
 {
-    boost::log::trivial::severity_level level;
+    boost::log::trivial::severity_level level = boost::log::trivial::info;
     std::stringstream ss;
     ss << config.log_level();
     ss >> level;
