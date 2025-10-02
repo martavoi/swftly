@@ -43,12 +43,6 @@
       }
     ],
     [
-      "@semantic-release/exec",
-      {
-        "publishCmd": "docker buildx build --platform linux/amd64 --build-arg VERSION=${nextRelease.version} --push -t $REGISTRY/$GITHUB_REPOSITORY:${nextRelease.version} -t $REGISTRY/$GITHUB_REPOSITORY:latest ."
-      }
-    ],
-    [
       "@semantic-release/github",
       {
         "assets": [
@@ -61,6 +55,12 @@
       {
         "assets": ["CHANGELOG.md"],
         "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "publishCmd": "docker buildx build --platform linux/amd64 --build-arg VERSION=${nextRelease.version} --push -t $REGISTRY/$GITHUB_REPOSITORY:${nextRelease.version} -t $REGISTRY/$GITHUB_REPOSITORY:latest ."
       }
     ]
   ]
