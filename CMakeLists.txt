@@ -1,7 +1,12 @@
 cmake_minimum_required(VERSION 3.16)
 
-# Project name and version
-project(swftly VERSION 1.0.0 LANGUAGES CXX)
+# Version can be passed via -DPROJECT_VERSION=x.y.z (e.g., from Docker build)
+# If not specified, defaults to 0.1.0 for local development
+if(NOT DEFINED PROJECT_VERSION)
+    set(PROJECT_VERSION "0.1.0")
+endif()
+
+project(swftly VERSION ${PROJECT_VERSION} LANGUAGES CXX)
 
 # Set C++ standard with fallback support
 set(CMAKE_CXX_STANDARD 23)
@@ -109,6 +114,31 @@ elseif(APPLE)
     # macOS-specific settings
 endif()
 
+# ==============================================================================
+# Version Information
+# ==============================================================================
+
+# Get git hash if available
+execute_process(
+    COMMAND git rev-parse --short HEAD
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE GIT_HASH
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET
+)
+
+if(NOT GIT_HASH)
+    set(GIT_HASH "unknown")
+endif()
+
+# Get build timestamp
+string(TIMESTAMP BUILD_TIMESTAMP "%Y-%m-%d %H:%M:%S UTC" UTC)
+
+message(STATUS "Version information:")
+message(STATUS "  - Version: ${PROJECT_VERSION}")
+message(STATUS "  - Git Hash: ${GIT_HASH}")
+message(STATUS "  - Build Timestamp: ${BUILD_TIMESTAMP}")
+
 # Automatically find all .cpp files in src directory
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
@@ -151,6 +181,18 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 
 # Include directories (for header files)
 target_include_directories(${PROJECT_NAME} PRIVATE src)
+
+# Define version information as compile definitions
+target_compile_definitions(${PROJECT_NAME} 
+    PRIVATE
+    SWFTLY_VERSION="${PROJECT_VERSION}"
+    SWFTLY_VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
+    SWFTLY_VERSION_MINOR=${PROJECT_VERSION_MINOR}
+    SWFTLY_VERSION_PATCH=${PROJECT_VERSION_PATCH}
+    SWFTLY_BUILD_TYPE="${CMAKE_BUILD_TYPE}"
+    SWFTLY_GIT_HASH="${GIT_HASH}"
+    SWFTLY_BUILD_TIMESTAMP="${BUILD_TIMESTAMP}"
+)
 
 # Link libraries using modern target-based approach
 target_link_libraries(${PROJECT_NAME} 

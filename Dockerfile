@@ -3,7 +3,10 @@
 # ==============================================================================
 # Builder Stage - Compile the application
 # ==============================================================================
-FROM alpine:3.21 AS builder
+FROM alpine:3 AS builder
+
+# Accept version as build argument (set by CI/CD)
+ARG VERSION=0.1.0
 
 # Install build dependencies
 # - g++ for C++23 support (Alpine 3.21+ has GCC 13.2+)
@@ -30,17 +33,19 @@ COPY src/ ./src/
 
 # Configure and build in Release mode with optimizations
 # Use all available cores for compilation
+# Pass version to CMake
 RUN cmake -B build \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_CXX_COMPILER=g++ \
     -DCMAKE_INSTALL_PREFIX=/usr/local \
+    -DPROJECT_VERSION=${VERSION} \
     && cmake --build build --parallel $(nproc) \
     && strip build/bin/swftly
 
 # ==============================================================================
 # Runtime Stage - Minimal production image
 # ==============================================================================
-FROM alpine:3.21 AS runtime
+FROM alpine:3 AS runtime
 
 # Install only runtime dependencies
 # - libstdc++ for C++ standard library

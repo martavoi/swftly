@@ -1,4 +1,5 @@
 #include "root_handler.hpp"
+#include "version.hpp"
 #include <boost/json.hpp>
 
 namespace http::handler
@@ -11,7 +12,9 @@ auto RootHandler::operator()([[maybe_unused]] const request_t *req, response_t *
 {
     json::object body;
     body["server"] = "Swftly";
-    body["version"] = "1.0.0";
+    body["version"] = swftly::VERSION;
+    body["build_type"] = swftly::BUILD_TYPE;
+    body["git_hash"] = swftly::GIT_HASH;
 
     res->result(http::status::ok);
     res->set(http::field::content_type, "application/json");

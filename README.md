@@ -84,6 +84,25 @@ curl http://localhost:8080/ping
 }
 ```
 
+## Versioning
+
+Swftly uses [semantic-release](https://github.com/semantic-release/semantic-release) for automated version management. Version information is injected at build time using compiler preprocessor definitions:
+
+- **CI/CD Flow**: semantic-release determines version → Docker build arg → CMake → compiler flags (-D)
+- **Native approach**: Version defined as preprocessor macros (like Go's `-ldflags`)
+- **Available at runtime**: Version info exposed in API responses and startup logs
+- **Local development**: Defaults to `0.0.0-dev` if no version specified
+
+**Example API response from `GET /`:**
+```json
+{
+  "server": "Swftly",
+  "version": "1.2.3",
+  "build_type": "Release",
+  "git_hash": "a1b2c3d"
+}
+```
+
 ## Quick Start
 
 ### Prerequisites
@@ -113,6 +132,10 @@ cmake --build build
 
 # 4. Run the server
 ./build/bin/swftly
+
+# Optional: Build with custom version
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DPROJECT_VERSION=1.2.3
+cmake --build build
 ```
 
 The server starts on `http://localhost:8080` by default.

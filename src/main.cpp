@@ -7,6 +7,7 @@
 #include "http/server.hpp"
 #include "logging/logger_setup.hpp"
 #include "storage/storage_service.hpp"
+#include "version.hpp"
 #include <boost/asio/io_context.hpp>
 #include <boost/log/trivial.hpp>
 #include <format>
@@ -83,7 +84,8 @@ auto main(int argc, const char *argv[]) -> int
 
         // Create server with io_context
         http::Server server{config, logger, router, ioc};
-        BOOST_LOG_SEV(logger, boost::log::trivial::info) << "Starting Swftly URL shortener...";
+        BOOST_LOG_SEV(logger, boost::log::trivial::info)
+            << std::format("Starting Swftly v{} ({})", swftly::VERSION, swftly::GIT_HASH);
         if (auto result = server.start(); !result)
         {
             switch (result.error())
