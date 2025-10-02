@@ -47,7 +47,10 @@
       {
         "assets": [
           { "path": "CHANGELOG.md", "label": "Changelog" }
-        ]
+        ],
+        "successComment": false,
+        "releasedLabels": false,
+        "addReleases": "bottom"
       }
     ],
     [
